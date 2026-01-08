@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸怨——厕所</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* ==================== 厕所页面专用样式 ==================== */
+        
+        /* 场景容器样式调整 */
+        .scene-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 人物立绘容器 */
+        .character-avatar-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        /* 人物立绘 */
+        .character-avatar-img {
+            position: absolute;
+            bottom: 0;
+            max-height: 100%;
+            max-width: 60%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.5));
+        }
+        
+        /* 人物立绘在左侧 */
+        .character-left {
+            left: 5%;
+        }
+        
+        /* 人物立绘在右侧 */
+        .character-right {
+            right: 5%;
+        }
+        
+        /* 对话框容器 - 调整高度 */
+        .dialogue-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30%; /* 减小对话框容器高度到30%，给立绘更多空间 */
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            pointer-events: none;
+        }
+        
+        /* 对话框 */
+        .dialogue-box {
+            background-color: rgba(0, 0, 0, 0.85);
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 0 20px 20px 20px;
+            min-height: 120px;
+            max-height: 180px; /* 限制最大高度 */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            overflow-y: auto; /* 添加滚动条 */
+            overflow-x: hidden;
+        }
+        
+        /* 对话框滚动条样式 */
+        .dialogue-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dialogue-box::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .dialogue-box::-webkit-scrollbar-thumb {
+            background: #4ecdc4;
+            border-radius: 4px;
+        }
+        
+        .dialogue-box::-webkit-scrollbar-thumb:hover {
+            background: #3abbb2;
+        }
+        
+        /* 对话框标题 */
+        .dialogue-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .title-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        /* 对话框文本 */
+        .dialogue-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        /* 对话框提示 */
+        .dialogue-hint {
+            text-align: right;
+            font-size: 14px;
+            color: #ffcc00;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        /* 旁白框样式 */
+        .narration-box {
+            background-color: rgba(0, 0, 0, 0.85);
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 0 20px 20px 20px;
+            min-height: 120px;
+            max-height: 180px; /* 限制最大高度 */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            overflow-y: auto; /* 添加滚动条 */
+            overflow-x: hidden;
+        }
+        
+        /* 旁白框滚动条样式 */
+        .narration-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .narration-box::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .narration-box::-webkit-scrollbar-thumb {
+            background: #4ecdc4;
+            border-radius: 4px;
+        }
+        
+        .narration-box::-webkit-scrollbar-thumb:hover {
+            background: #3abbb2;
+        }
+        
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 场景背景图片 */
+        .scene-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        /* 翻找选项样式 - 复用教室样式 */
+        .investigate-options-container {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .investigate-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .investigate-option {
+            background-color: rgba(224, 224, 224, 0.9);
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 140px;
+        }
+        
+        .investigate-option:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 255, 255, 0.2);
+        }
+        
+        .investigate-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: rgba(128, 128, 128, 0.5);
+            border-color: #666;
+            color: #999;
+        }
+        
+        .investigate-option.disabled:hover {
+            transform: none;
+            background-color: rgba(128, 128, 128, 0.5);
+            box-shadow: none;
+        }
+        
+        /* 闪烁动画效果 - 修改为顶部光源效果 */
+        @keyframes ceilingFlash {
+            0% { 
+                background-color: rgba(255, 0, 0, 0.2);
+                box-shadow: 0 0 100px rgba(255, 0, 0, 0.5) inset;
+            }
+            25% { 
+                background-color: rgba(0, 0, 255, 0.2);
+                box-shadow: 0 0 100px rgba(0, 0, 255, 0.5) inset;
+            }
+            50% { 
+                background-color: rgba(0, 255, 0, 0.2);
+                box-shadow: 0 0 100px rgba(0, 255, 0, 0.5) inset;
+            }
+            75% { 
+                background-color: rgba(255, 255, 0, 0.2);
+                box-shadow: 0 0 100px rgba(255, 255, 0, 0.5) inset;
+            }
+            100% { 
+                background-color: rgba(255, 0, 255, 0.2);
+                box-shadow: 0 0 100px rgba(255, 0, 255, 0.5) inset;
+            }
+        }
+        
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            display: none;
+            background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        
+        .flash-overlay.active {
+            display: block;
+            opacity: 0.4;
+            animation: ceilingFlash 0.8s linear;
+            animation-iteration-count: 3;
+        }
+        
+        /* 红圈指示区域样式 - 复用教室样式 */
+        .hint-circle {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border: 3px solid rgba(255, 60, 60, 0.9);
+            border-radius: 50%;
+            z-index: 40;
+            pointer-events: auto;
+            opacity: 0;
+            display: none;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+        
+        @keyframes pulseRingRed {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .hint-circle.active {
+            opacity: 0.9;
+            animation: pulseRingRed 2s ease-in-out infinite;
+        }
+        
+        /* 继续探索提示 */
+        .continue-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 50;
+            animation: fadeInOut 3s ease forwards;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* 日记页面样式 */
+        .diary-page .dialogue-text {
+            font-size: 15px;
+            line-height: 1.6;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            border-left: 3px solid #4ecdc4;
+        }
+
+        .diary-text {
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: #e0e0e0;
+        }
+
+        .diary-text strong {
+            color: #4ecdc4;
+            font-size: 16px;
+        }
+        
+        /* 特殊物品提示样式 */
+        .special-item-hint {
+            color: #ffcc00;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: rgba(255, 204, 0, 0.1);
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        /* 选择按钮选项样式 */
+        .choice-options-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #4ecdc4;
+        }
+        
+        .choice-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .choice-option {
+            background-color: rgba(78, 205, 196, 0.9);
+            border: 2px solid #4ecdc4;
+            border-radius: 8px;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .choice-option:hover {
+            background-color: rgba(78, 205, 196, 1);
+            transform: scale(1.05);
+        }
+        
+        /* ==================== 动画关键帧 ==================== */
+        /* 立绘淡入动画 */
+        @keyframes avatarFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 对话框淡入动画 */
+        @keyframes dialogueFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 评论弹出动画 */
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+            70% {
+                opacity: 1;
+                transform: translateY(-3px) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .comment.pop-in {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <a href="map.html" class="map-link">回到地图</a>
+        
+        <div class="scene-area scene-container">
+            <!-- 场景1：厕所洗手台 -->
+            <div class="scene" id="scene1">
+                <div class="scene-content">
+                    <!-- 添加背景图片 -->
+                    <img src="res/厕所洗手台.jpg" alt="厕所洗手台" class="scene-bg">
+                    
+                    <!-- 人物立绘容器 -->
+                    <div class="character-avatar-container" id="scene1-character-avatar-container"></div>
+                    
+                    <!-- 物品栏 -->
+                    <div class="inventory-area" id="inventory-area">
+                        <div class="inventory-placeholder">物品栏</div>
+                    </div>
+                    
+                    <!-- 对话框容器 -->
+                    <div class="dialogue-container" id="dialogue-container">
+                        <!-- 初始旁白 -->
+                        <div class="narration-box" id="narration-box">
+                            <div class="dialogue-text" id="narration-content">
+                                厕所离教室不远，就在西侧。赵健冲进男厕，急拧洗手池水龙头，却没一滴水。他只能转向女厕——这里早已荒废，不必担心误会。
+                                <br><br>
+                                赵健撞开斑驳的木门，里面昏暗，唯有墙角应急灯泛着惨绿的光。格局和男厕一致，狭窄的洗手区嵌着三个老旧白瓷洗手池，水龙头锈成红褐色，墙上挂着一面污渍遍布、氧化发花的大镜子，照出的人影扭曲变形。
+                            </div>
+                            <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 场景2：厕所洗手台（呐喊画） -->
+            <div class="scene" id="scene2">
+                <div class="scene-content">
+                    <!-- 添加背景图片 -->
+                    <img src="res/厕所洗手台2.jpg" alt="厕所洗手台2" class="scene-bg">
+                    
+                    <!-- 人物立绘容器 -->
+                    <div class="character-avatar-container" id="scene2-character-avatar-container"></div>
+                    
+                    <!-- 红圈指示区域 -->
+                    <div class="hint-circle" id="hint-circle-scream"></div>
+                    
+                    <!-- 物品栏 -->
+                    <div class="inventory-area" id="inventory-area2">
+                        <div class="inventory-placeholder">物品栏</div>
+                    </div>
+                    
+                    <!-- 场景2对话容器 -->
+                    <div class="dialogue-container" id="scene2-dialogue-container"></div>
+                </div>
+            </div>
+            
+            <!-- 场景3：厕所隔间 -->
+            <div class="scene" id="scene3">
+                <div class="scene-content">
+                    <!-- 添加背景图片 -->
+                    <img src="res/厕所隔间.jpg" alt="厕所隔间" class="scene-bg">
+                    
+                    <!-- 人物立绘容器 -->
+                    <div class="character-avatar-container" id="scene3-character-avatar-container"></div>
+                    
+                    <!-- 红圈指示区域 -->
+                    <div class="hint-circle" id="hint-circle-last-door"></div>
+                    
+                    <!-- 物品栏 -->
+                    <div class="inventory-area" id="inventory-area3">
+                        <div class="inventory-placeholder">物品栏</div>
+                    </div>
+                    
+                    <!-- 场景3对话容器 -->
+                    <div class="dialogue-container" id="scene3-dialogue-container"></div>
+                </div>
+            </div>
+            
+            <!-- 场景4：单间内部 -->
+            <div class="scene" id="scene4">
+                <div class="scene-content">
+                    <!-- 添加背景图片 -->
+                    <img src="res/单间内部.jpg" alt="单间内部" class="scene-bg">
+                    
+                    <!-- 人物立绘容器 -->
+                    <div class="character-avatar-container" id="scene4-character-avatar-container"></div>
+                    
+                    <!-- 红圈指示区域 -->
+                    <div class="hint-circle" id="hint-circle-hand"></div>
+                    
+                    <!-- 物品栏 -->
+                    <div class="inventory-area" id="inventory-area4">
+                        <div class="inventory-placeholder">物品栏</div>
+                    </div>
+                    
+                    <!-- 场景4对话容器 -->
+                    <div class="dialogue-container" id="scene4-dialogue-container"></div>
+                </div>
+            </div>
+            
+            <!-- 场景5：厕所呐喊 -->
+            <div class="scene" id="scene5">
+                <div class="scene-content">
+                    <!-- 添加背景图片 -->
+                    <img src="res/厕所呐喊.jpg" alt="厕所呐喊" class="scene-bg">
+                    
+                    <!-- 人物立绘容器 -->
+                    <div class="character-avatar-container" id="scene5-character-avatar-container"></div>
+                    
+                    <!-- 物品栏 -->
+                    <div class="inventory-area" id="inventory-area5">
+                        <div class="inventory-placeholder">物品栏</div>
+                    </div>
+                    
+                    <!-- 场景5对话容器 -->
+                    <div class="dialogue-container" id="scene5-dialogue-container"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 闪烁效果覆盖层 -->
+        <div class="flash-overlay" id="flash-overlay"></div>
+        
+        <!-- 直播评论区 -->
+        <div class="live-area">
+            <div class="live-header">
+                <h3 class="live-title">直播间评论区</h3>
+                <span class="viewer-count">在线人数: <span id="viewer-count">1134218</span></span>
+            </div>
+            
+            <div class="comment-area" id="comment-area">
+            </div>
+        </div>
+    </div>
+    
+    <!-- 物品放大展示层 -->
+    <div class="item-overlay" id="item-overlay">
+        <div class="item-overlay-content">
+            <img id="overlay-item-img" src="" alt="">
+            <div class="close-item" onclick="closeItemOverlay()">
+                <img src="res/叉叉.jpg" alt="关闭">
+            </div>
+        </div>
+    </div>
+	
+	<audio id="background-music" src="res/诡异.mp3" loop preload="auto"></audio>
+
+    <script>
+        // ==================== 游戏状态管理 ====================
+        const gameState = {
+            currentScene: 1,
+            isDialogueActive: false,
+            currentDialogueIndex: 0,
+            shownDialogueIds: new Set(),
+            inventory: [],
+            characters: {
+                你: { position: 'right', color: '#4ecdc4' },
+                赵健: { position: 'left', color: '#ff6b6b' },
+                王鹏: { position: 'left', color: '#95e1d3' },
+                孙薇薇: { position: 'left', color: '#f8a5c2' },
+                沈墨言: { position: 'left', color: '#778beb' }
+            },
+            currentCharacter: null,
+            currentAvatar: null,
+            isWaitingForClick: false,
+            clickCallback: null,
+            hasStarted: false,
+            currentDialogueContainer: null,
+            shownComments: new Set(),
+            isFlashing: false,
+            // 新物品ID
+            itemsObtained: {
+                paintingKey: false,
+                diary3: false,
+                archiveKey: false
+            },
+            // 场景调查状态
+            sceneInvestigated: {
+                faucet: false,
+                painting: false,
+                lastRoom: false,
+                hand: false
+            },
+			// 新增：音乐相关状态
+			musicPlayed: false,  // 标记音乐是否已经播放
+			musicVolume: 0.3     // 背景音乐音量（0-1之间，0.3即30%音量）
+        };
+        
+        // ==================== 物品系统 ====================
+        const inventoryItems = {
+            '小纸的日记·其一': {
+                id: 'paper_diary_1',
+                name: '小纸的日记·其一',
+                image: 'res/小纸的日记(其一).jpg',
+                description: '小纸的第一本日记'
+            },
+            '小纸的日记·其二': {
+                id: 'paper_diary_2',
+                name: '小纸的日记·其二',
+                image: 'res/小纸的日记(其二).jpg',
+                description: '小纸的第二本日记'
+            },
+            '画后钥匙': {
+                id: 'painting_key',
+                name: '画后钥匙',
+                image: 'res/画后钥匙.jpg',
+                description: '一把银色钥匙，标签上写着"画后"'
+            },
+            '小纸的日记·其三': {
+                id: 'paper_diary_3',
+                name: '小纸的日记·其三',
+                image: 'res/小纸的日记(其三).jpg',
+                description: '小纸的第三本日记'
+            },
+            '档案柜钥匙': {
+                id: 'archive_key',
+                name: '档案柜钥匙',
+                image: 'res/档案柜钥匙.jpg',
+                description: '钥匙上写着"档案柜"'
+            }
+        };
+        
+        // ==================== DOM元素引用 ====================
+        const elements = {
+            narrationBox: document.getElementById('narration-box'),
+            narrationContent: document.getElementById('narration-content'),
+            commentArea: document.getElementById('comment-area'),
+            viewerCount: document.getElementById('viewer-count'),
+            itemOverlay: document.getElementById('item-overlay'),
+            overlayItemImg: document.getElementById('overlay-item-img'),
+            dialogueContainer: document.getElementById('dialogue-container'),
+            flashOverlay: document.getElementById('flash-overlay'),
+            // 红圈元素
+            hintCircleScream: document.getElementById('hint-circle-scream'),
+            hintCircleLastDoor: document.getElementById('hint-circle-last-door'),
+            hintCircleHand: document.getElementById('hint-circle-hand'),
+            // 立绘容器
+            scene1CharacterAvatarContainer: document.getElementById('scene1-character-avatar-container'),
+            scene2CharacterAvatarContainer: document.getElementById('scene2-character-avatar-container'),
+            scene3CharacterAvatarContainer: document.getElementById('scene3-character-avatar-container'),
+            scene4CharacterAvatarContainer: document.getElementById('scene4-character-avatar-container'),
+            scene5CharacterAvatarContainer: document.getElementById('scene5-character-avatar-container'),
+			backgroundMusic: document.getElementById('background-music')
+        };
+        
+        // ==================== 弹幕内容（增加更多种类） ====================
+        const commentsData = {
+            scene1_0: [
+                { user: '恐怖爱好者', text: '女厕永远是最吓人的地方' },
+                { user: '细节控', text: '绿色的应急灯，氛围拉满了' },
+                { user: '胆小但爱看', text: '我不敢去厕所了' },
+                { user: '探险家', text: '废弃女厕探险，主播胆子真大' },
+                { user: '环境分析', text: '这场景布置得真不错' },
+                { user: '心理阴影', text: '我小时候被关过厕所，有阴影' },
+                { user: '氛围组', text: '阴森森的，好刺激' },
+                { user: '护体弹幕', text: '弹幕护体！弹幕护体！' },
+                { user: '不敢呼吸', text: '我都不敢呼吸了' },
+                { user: '期待剧情', text: '坐等诡异事件发生' }
+            ],
+            scene1_1: [
+                { user: '网友', text: '赵健手被电伤了还要碰水' },
+                { user: '观察员', text: '红色的液体，不会是血吧？' },
+                { user: '化学爱好者', text: '颜料掺铁锈水，沈墨言挺会玩' },
+                { user: '血腥画面', text: '看着像真血，好逼真' },
+                { user: '胆子大', text: '主播还敢用手去沾，厉害' },
+                { user: '嗅觉体验', text: '铁锈般的腥气，描述得好真实' },
+                { user: '恐怖升级', text: '越来越吓人了' },
+                { user: '不敢看', text: '我闭着眼睛看的' },
+                { user: '推理时间', text: '这是第二条诡异事件吧' },
+                { user: '节目效果', text: '沈墨言真会安排' }
+            ],
+            scene1_2: [
+                { user: '艺术生', text: '《呐喊》！蒙克的画！' },
+                { user: '恐怖爱好者', text: '第三条诡异事件来了' },
+                { user: '胆小但爱看', text: '画真的在动吗？我害怕' },
+                { user: '名画鉴赏', text: '居然用蒙克的画，有品位' },
+                { user: '心理作用', text: '是心理作用还是真的在动？' },
+                { user: '鸡皮疙瘩', text: '我鸡皮疙瘩起来了' },
+                { user: '不敢直视', text: '不敢直视那幅画' },
+                { user: '艺术恐怖', text: '用名画制造恐怖，高招' },
+                { user: '动感画面', text: '画中人在动，太诡异了' },
+                { user: '捂住眼睛', text: '我用手捂着眼睛看的' }
+            ],
+            scene2_0: [
+                { user: '网友', text: '血字！镜子流血了！' },
+                { user: '推理大师', text: '每人一间隔间，要分开了' },
+                { user: '胆小但爱看', text: '我不想去隔间啊啊啊' },
+                { user: '血字惊魂', text: '血字在蠕动，好吓人' },
+                { user: '强制游戏', text: '不出局就得进去，没得选' },
+                { user: '分头行动', text: '分开行动最吓人' },
+                { user: '独立空间', text: '一个人在小隔间里最恐怖' },
+                { user: '不敢进去', text: '换我死也不进去' },
+                { user: '游戏规则', text: '游戏规则越来越明确了' },
+                { user: '心跳加速', text: '我的心跳在加速' }
+            ],
+            scene3_0: [
+                { user: '网友', text: '孙薇薇要哭了' },
+                { user: '赵健粉', text: '赵健好勇敢' },
+                { user: '观察员', text: '王鹏好安静，有点不对劲' },
+                { user: '害怕表情', text: '孙薇薇的表情管理失败了' },
+                { user: '带头大哥', text: '赵健总是第一个上' },
+                { user: '小透明', text: '王鹏存在感好低' },
+                { user: '安慰队友', text: '主播在安慰孙薇薇' },
+                { user: '隔间分配', text: '一人一间，开始吧' },
+                { user: '门锁声音', text: '锁门的声音好清晰' },
+                { user: '寂静时刻', text: '外面太安静了' }
+            ],
+            scene3_1: [
+                { user: '胆小但爱看', text: '啊啊啊灯光闪烁！' },
+                { user: '恐怖爱好者', text: '天花板光源闪烁，更吓人了' },
+                { user: '网友', text: '孙薇薇在尖叫，心疼' },
+                { user: '迪厅效果', text: '红蓝绿紫光，像在迪厅' },
+                { user: '眼睛花了', text: '闪得我眼睛都花了' },
+                { user: '心脏骤停', text: '我心脏差点停了' },
+                { user: '被困住了', text: '门打不开了，被困住了' },
+                { user: '砸门声', text: '砰砰砰的砸门声' },
+                { user: '紧张时刻', text: '最紧张的时刻来了' },
+                { user: '不敢看了x2', text: '我真的不敢看了' }
+            ],
+            scene3_2: [
+                { user: '网友', text: '头发！门缝下的头发！' },
+                { user: '胆小但爱看', text: '虫子模型！我密集恐惧症犯了' },
+                { user: '观察员', text: '全是幻觉吗？太真实了' },
+                { user: '长发蠕动', text: '黑色的长发在蠕动' },
+                { user: '密集恐惧', text: '密密麻麻的虫子模型' },
+                { user: '幻觉测试', text: '这是幻觉测试吧' },
+                { user: '真实感受', text: '冷汗都出来了，太真实' },
+                { user: '尖叫时刻', text: '主播终于尖叫了' },
+                { user: '赵健关心', text: '赵健还在关心主播' },
+                { user: '黑暗降临', text: '灯光全灭，最吓人' }
+            ],
+            scene4_0: [
+                { user: '网友', text: '最后一间门自己开了！' },
+                { user: '推理大师', text: '墙上的血手，机关设计的' },
+                { user: '胆小但爱看', text: '那只手好苍白，像真的一样' },
+                { user: '自动开门', text: '嘎吱一声，门自己开了' },
+                { user: '血纸飞机', text: '墙上的血纸飞机' },
+                { user: '手模型', text: '手模型做得好逼真' },
+                { user: '关节发白', text: '指关节发白，细节到位' },
+                { user: '机关设计', text: '连着金属杆，是机关' },
+                { user: '不敢进去', text: '换我绝对不敢进去' },
+                { user: '拖把武器', text: '赵健拿着拖把杆，好搞笑' }
+            ],
+            scene5_0: [
+                { user: '网友', text: '拿到钥匙了！' },
+                { user: '推理大师', text: '保险柜在画后面，巧妙' },
+                { user: '观察员', text: '日记越来越诡异了' },
+                { user: '钥匙到手', text: '画后钥匙，名字取得好' },
+                { user: '隐藏保险柜', text: '画后面有保险柜，巧妙' },
+                { user: '日记碎片', text: '又是日记碎片' },
+                { user: '连续剧情', text: '剧情连贯性很好' },
+                { user: '解密时刻', text: '解密时间到了' },
+                { user: '物品栏提示', text: '要用物品栏的钥匙了' },
+                { user: '期待日记', text: '想看第三本日记内容' }
+            ],
+            scene5_1: [
+                { user: '网友', text: '镜子炸了！' },
+                { user: '胆小但爱看', text: '吓死我了，突然炸开' },
+                { user: '推理大师', text: '档案柜钥匙，去办公室' },
+                { user: '玻璃破碎', text: '镜子突然炸开，吓死人' },
+                { user: '档案柜钥匙', text: '钥匙上写着档案柜' },
+                { user: '办公室线索', text: '要去办公室了' },
+                { user: '剧情推进', text: '剧情在推进' },
+                { user: '躲闪及时', text: '还好躲闪及时' },
+                { user: '连续惊吓', text: '一个接一个的惊吓' },
+                { user: '心跳不止', text: '我的心跳还没平复' }
+            ]
+        };
+        
+        // ==================== 场景对话序列（已修改为第二人称） ====================
+        const sceneDialogues = {
+            scene1: [
+                {
+                    type: 'narration',
+                    content: '唯一不同的是，墙后挂着一幅爱德华·蒙克的《呐喊》。诡异感扑面而来，但赵健没空想这些，径直走到最右侧洗手池前拧开水龙头。',
+                    commentKey: 'scene1_1'
+                },
+                {
+                    type: 'character',
+                    character: '赵健',
+                    text: '"咕噜……咕噜……"水管里传来闷响，几秒后，暗红色粘稠液体缓缓流出。"操！"赵健猛地缩手。液体滴在瓷盆里溅开暗红斑点，散发出铁锈般的腥气——像血。',
+                    avatar: 'res/赵健.png'
+                },
+                {
+                    type: 'narration',
+                    content: '你们随后赶到，孙薇薇尖叫着后退撞墙，王鹏盯着那滩"血"，嘴唇哆嗦。你强压心跳上前，沾了一点凑近闻："是颜料，掺了铁锈水的红颜料，有化学味。"'
+                },
+                {
+                    type: 'character',
+                    character: '你',
+                    text: '你忽然想起沈默言提过的第二条诡异事件："2，厕所的水龙头晚上打开流出来的不是水而是血。"',
+                    avatar: 'res/林晚晴.png'
+                },
+                {
+                    type: 'character',
+                    character: '孙薇薇',
+                    text: '"这也是他设计的？"孙薇薇声音发颤。',
+                    avatar: 'res/孙薇薇.png'
+                },
+                {
+                    type: 'character',
+                    character: '赵健',
+                    text: '"肯定是。"赵健用干净的左手关掉水龙头，"装神弄鬼。"',
+                    avatar: 'res/赵健.png'
+                },
+                {
+                    type: 'narration',
+                    content: '你们的目光不约而同落在《呐喊》上——那是第三条诡异事件："3，墙上的挂画晚上你用手电筒去照的身体会动；"',
+                    commentKey: 'scene1_2'
+                },
+                {
+                    type: 'character',
+                    character: '你',
+                    text: '你举着手电筒照向画作。起初毫无异常，几秒后，画中捂脸的人影竟微微起伏，指缝仿佛开合了一瞬，画布纹理在光线下透着诡异的流动感。',
+                    avatar: 'res/林晚晴.png'
+                },
+                {
+                    type: 'character',
+                    character: '孙薇薇',
+                    text: '"它……它在动？"孙薇薇带了哭腔。',
+                    avatar: 'res/孙薇薇.png'
+                },
+                {
+                    type: 'character',
+                    character: '你',
+                    text: '"是心理作用。"你强装镇定。',
+                    avatar: 'res/林晚晴.png',
+                    action: function() {
+                        // 切换到场景2
+                        setTimeout(() => {
+                            switchToScene(2);
+                        }, 500);
+                    }
+                }
+            ],
+            
+            scene2: [
+                {
+                    type: 'narration',
+                    content: '话音刚落，镜子上突然浮现血红字迹，像无形的笔在书写："每人一间隔间，锁好门。游戏继续。"红色愈发浓郁，凝成粘稠液体顺着镜面向下蜿蜒，如同活物般蠕动。',
+                    commentKey: 'scene2_0'
+                },
+                {
+                    type: 'character',
+                    character: '赵健',
+                    text: '"什么意思？"赵健皱眉。',
+                    avatar: 'res/赵健.png',
+					action: function() {
+                        // 切换到场景3
+                        setTimeout(() => {
+                            switchToScene(3);
+                        }, 500);
+                    }
+                }
+            ]
+        };
+        
+        // ==================== 场景3的对话序列（已修改为第二人称） ====================
+        const scene3Dialogues = [
+            {
+                type: 'narration',
+                content: '你们看向厕所内侧的六个隔间，门板破旧、油漆剥落，第一个隔间没门，堆满杂物污垢。'
+            },
+            {
+                type: 'character',
+                character: '你',
+                text: '你轻声说："4，厕所最后一个隔间常年打不开，但是你晚上去，门会自己打开，并且会有手从里面伸出来。这是第四条诡异事件，前三条都应验了，剩下的说不定……"',
+                avatar: 'res/林晚晴.png'
+            },
+            {
+                type: 'narration',
+                content: '赵健大步走向最后一个隔间，用力拽门把手、撞门，门却纹丝不动。你试了试其他隔间，都能打开。'
+            },
+            {
+                type: 'character',
+                character: '孙薇薇',
+                text: '"要我们各自进去？"孙薇薇发抖，"我不要！"',
+                avatar: 'res/孙薇薇.png',
+                commentKey: 'scene3_0'
+            },
+            {
+                type: 'character',
+                character: '你',
+                text: '"由不得我们。"你看向镜子，新的血字浮现："拒绝，即出局。"',
+                avatar: 'res/林晚晴.png'
+            },
+            {
+                type: 'narration',
+                content: '"出局"二字让人心头发紧，没人敢赌后果。赵健骂了一句，率先走向第二个隔间："进就进！看他能玩什么花样！"他进门反锁，"咔哒"一声在死寂的厕所里格外清晰。'
+            },
+            {
+                type: 'narration',
+                content: '王鹏看了你一眼，低头走向第三个隔间。孙薇薇死死抓着你的手臂："晚晴姐……我害怕……"'
+            },
+            {
+                type: 'character',
+                character: '你',
+                text: '你拍了拍她的手："没事，都是假的，就当密室逃脱。我们隔墙相望，有事喊我。"你把她推进第四个隔间，自己走进第五个。',
+                avatar: 'res/林晚晴.png'
+            },
+            {
+                type: 'narration',
+                content: '门关上、锁死，霉味、铁锈味混着一丝甜腥扑面而来。隔间狭小逼仄，墙壁涂满污言秽语和诡异涂鸦。外面太过安静，连呼吸声都清晰可闻。'
+            },
+            {
+                type: 'narration',
+                content: '突然，外面最后一丝光源消失了。紧接着，红、蓝、绿、紫的光疯狂闪烁，像迪厅灯球般刺眼混乱，晃得你眼睛发花，心跳骤加速。',
+                action: function() {
+                    // 触发闪烁效果
+                    triggerFlashEffect();
+                    triggerComments('scene3_1');
+                }
+            },
+            {
+                type: 'character',
+                character: '孙薇薇',
+                text: '孙薇薇的尖叫响起，伴着砸门板的声音："放我出去！我不玩了！"',
+                avatar: 'res/孙薇薇.png',
+				action: function() {
+				            playSoundEffect('res/尖叫音效.mp3', 0.7);
+				        }
+            },
+            {
+                type: 'character',
+                character: '赵健',
+                text: '赵健的怒骂传来："靠！门打不开了！"',
+                avatar: 'res/赵健.png'
+            },
+            {
+                type: 'character',
+                character: '你',
+                text: '你打开锁扣拧把手，门却纹丝不动，仿佛被从外面别住。"砰！砰！砰！"门板剧烈晃动，插销咯咯作响，像要随时崩开。你手心全是冷汗，差点握不住手机。',
+                avatar: 'res/林晚晴.png'
+            },
+            {
+                type: 'narration',
+                content: '门缝下，一团乌黑的长发缓缓蠕动进来，朝着你的脚边蔓延。你猛地缩脚，后背贴紧墙壁。头顶传来窸窸窣窣的声响，你抬头，只见天花板缝隙里，密密麻麻的蟑螂、蜘蛛模型像雨点般落下，砸在你的头和肩上。',
+                commentKey: 'scene3_2'
+            },
+            {
+                type: 'character',
+                character: '你',
+                text: '你忍不住尖叫，疯狂拍打。',
+                avatar: 'res/林晚晴.png',
+				action: function() {
+				            playSoundEffect('res/尖叫音效.mp3', 0.7);
+				        }
+            },
+            {
+                type: 'character',
+                character: '赵健',
+                text: '赵健的声音从隔壁传来："没事吧晚晚！怎么了！"',
+                avatar: 'res/赵健.png'
+            },
+            {
+                type: 'narration',
+                content: '你腿一软差点摔倒，刚要回应，灯光再次全灭，所有声音戛然而止。'
+            },
+            {
+                type: 'narration',
+                content: '黑暗持续了十秒，惨绿的应急灯重新亮起。隔间里空空如也，没有长发，没有虫子，门也不再晃动——仿佛刚才的一切都是幻觉。但你剧烈的心跳和手心的冷汗都在告诉你，那是真的。'
+            },
+            {
+                type: 'narration',
+                content: '"咔哒。"隔间门锁自行弹开。你颤抖着推开门，看见赵健、王鹏、孙薇薇也陆续走出。孙薇薇脸色惨白，满脸泪痕，妆都花了；王鹏扶着墙，腿还在发软；赵健脸色阴沉，眼神里藏着后怕。'
+            },
+            {
+                type: 'character',
+                character: '孙薇薇',
+                text: '"结、结束了？"孙薇薇抽噎着问。',
+                avatar: 'res/孙薇薇.png',
+				action: function() {
+					new Audio('res/厕所门开.mp3').play();
+				}
+            },
+            {
+                type: 'narration',
+                content: '"嘎吱……"最后一间隔间的门，突然缓缓向内打开，门内一片漆黑。',
+				
+            },
+            {
+                type: 'character',
+                character: '赵健',
+                text: '"操……"赵健骂了一句，声音却发虚。',
+                avatar: 'res/赵健.png'
+            },
+            {
+                type: 'narration',
+                content: '你们对视一眼，没人敢动。镜子上的血字再次浮现："最后一间，有你们要的东西。"',
+                action: function() {
+                    // 显示最后一间门的红圈
+                    setTimeout(() => {
+                        showHintCircle('last-door');
+                    }, 500);
+                }
+            }
+        ];
+        
+        // ==================== 场景4的对话序列（已修改为第二人称） ====================
+        const scene4Dialogues = [
+            {
+                type: 'narration',
+                content: '赵健咬牙捡起一根锈蚀的拖把杆，走向那扇门。你举着手机跟上，孙薇薇和王鹏缩在你身后。',
+                commentKey: 'scene4_0'
+            },
+            {
+                type: 'narration',
+                content: '手电光照进隔间——里面没有马桶，只有空荡荡的水泥地。正对门的墙上，画着一个巨大的血红纸飞机，纸飞机中心，一只苍白的人手模型从墙里伸出，五指攥紧，指关节发白。模型腕部连着细金属杆，显然是机关。',
+                action: function() {
+                    // 显示手模型红圈
+                    setTimeout(() => {
+                        showHintCircle('hand');
+                    }, 500);
+                }
+            }
+        ];
+        
+        // ==================== 场景5的对话序列（已修改为第二人称） ====================
+        const scene5Dialogues = [
+            {
+                type: 'narration',
+                content: '你们同时看向墙上的《呐喊》。赵健走过去摘下画框——画框是活动的，后面露出一个嵌入墙体的小型保险柜，锁孔正好匹配钥匙。',
+                commentKey: 'scene5_0',
+				action: function() {
+                    // 显示提示，等待玩家点击物品栏
+                    showInventoryHint();
+                }
+            }
+        ];
+		function playBackgroundMusic() {
+		    // 如果音乐元素不存在或已经播放过，直接返回
+		    if (!elements.backgroundMusic || gameState.musicPlayed) {
+		        return;
+		    }
+		
+		    // 设置音量
+		    elements.backgroundMusic.volume = gameState.musicVolume;
+		
+		    // 尝试播放音乐（处理浏览器自动播放策略）
+		    elements.backgroundMusic.play()
+		        .then(() => {
+		            gameState.musicPlayed = true;
+		            console.log('背景音乐播放成功');
+		        })
+		        .catch((error) => {
+		            console.log('自动播放失败，需要用户交互后播放:', error);
+		            
+		            // 监听用户第一次点击，触发音乐播放
+		            document.addEventListener('click', function playOnClick() {
+		                elements.backgroundMusic.play()
+		                    .then(() => {
+		                        gameState.musicPlayed = true;
+		                        console.log('用户交互后背景音乐播放成功');
+		                    })
+		                    .catch(err => console.log('播放失败:', err));
+		                // 只监听一次点击
+		                document.removeEventListener('click', playOnClick);
+		            }, { once: true });
+		        });
+		}
+		
+		function pauseBackgroundMusic() {
+		    if (elements.backgroundMusic) {
+		        elements.backgroundMusic.pause();
+		    }
+		}
+		
+		function resumeBackgroundMusic() {
+		    if (elements.backgroundMusic && gameState.musicPlayed) {
+		        elements.backgroundMusic.play();
+		    }
+		}
+        // ==================== 新增：音效播放函数 ====================
+        function playSoundEffect(soundPath, volume = 0.7) {
+            // 创建音频对象
+            const sound = new Audio(soundPath);
+            // 设置音量（0-1之间，0.7即70%音量）
+            sound.volume = volume;
+            // 播放音效
+            sound.play().catch(error => {
+                console.log('音效播放失败:', error);
+                // 兼容浏览器自动播放策略：需要用户交互后播放
+                document.addEventListener('click', function playOnClick() {
+                    sound.play().catch(err => console.log('用户交互后音效播放仍失败:', err));
+                    document.removeEventListener('click', playOnClick);
+                }, { once: true });
+            });
+            // 返回音频对象（便于后续控制）
+            return sound;
+        }
+        // ==================== 红圈管理系统 ====================
+        function showHintCircle(type) {
+            let element, titleText, clickFunction;
+            
+            const sceneId = `scene${gameState.currentScene}`;
+            const sceneElement = document.getElementById(sceneId);
+            const sceneContent = sceneElement ? sceneElement.querySelector('.scene-content') : null;
+            
+            if (!sceneContent) {
+                console.log('找不到场景内容:', sceneId);
+                return;
+            }
+            
+            const sceneRect = sceneContent.getBoundingClientRect();
+            
+            let x, y;
+            
+            switch(type) {
+                case 'scream':  // 《呐喊》画的红圈
+                    element = elements.hintCircleScream;
+                    titleText = '点击查看《呐喊》画';
+                    clickFunction = examineScreamPainting;
+                    
+                    x = sceneRect.width * 0.8;  
+                    y = sceneRect.height * 0.5;  
+                    break;
+                    
+                case 'last-door':  // 最后一间隔间门的红圈
+                    element = elements.hintCircleLastDoor;
+                    titleText = '点击进入最后一间隔间';
+                    clickFunction = function() {
+                        hideHintCircle('last-door');
+                        switchToScene(4);
+                    };
+                    
+                    x = sceneRect.width * 0.65;  
+                    y = sceneRect.height * 0.5;  
+                    break;
+                    
+                case 'hand':    // 手模型的红圈
+                    element = elements.hintCircleHand;
+                    titleText = '点击查看手模型';
+                    clickFunction = examineHandModel;
+                    
+                    x = sceneRect.width * 0.53;  
+                    y = sceneRect.height * 0.4;  
+                    break;
+                    
+                default:
+                    console.log('未知的红圈类型:', type);
+                    return;
+            }
+            
+            if (!element) {
+                console.log('找不到红圈元素:', type);
+                return;
+            }
+            
+            element.style.left = x + 'px';
+            element.style.top = y + 'px';
+            element.title = titleText;
+            element.style.display = 'block';
+            element.onclick = clickFunction;
+            
+            setTimeout(() => {
+                element.classList.add('active');
+            }, 100);
+            
+            console.log(`红圈 ${type} 已显示在位置: ${x}, ${y}`);
+        }
+        
+        function hideHintCircle(type) {
+            let element;
+            
+            switch(type) {
+                case 'scream':
+                    element = elements.hintCircleScream;
+                    break;
+                case 'last-door':
+                    element = elements.hintCircleLastDoor;
+                    break;
+                case 'hand':
+                    element = elements.hintCircleHand;
+                    break;
+                default:
+                    console.log('未知的红圈类型:', type);
+                    return;
+            }
+            
+            if (!element) {
+                console.log('找不到红圈元素:', type);
+                return;
+            }
+            
+            element.classList.remove('active');
+            setTimeout(() => {
+                element.style.display = 'none';
+                console.log(`红圈 ${type} 已隐藏`);
+            }, 300);
+        }
+        
+        function hideAllHintCircles() {
+            const circles = [
+                elements.hintCircleScream,
+                elements.hintCircleLastDoor,
+                elements.hintCircleHand
+            ];
+            
+            circles.forEach(circle => {
+                if (circle) {
+                    circle.classList.remove('active');
+                    circle.style.display = 'none';
+                }
+            });
+        }
+        
+        // ==================== 红圈交互函数 ====================
+        function examineScreamPainting() {
+            // 检查《呐喊》画
+            hideHintCircle('scream');
+            gameState.sceneInvestigated.painting = true;
+            
+            // 继续播放对话
+            if (gameState.currentScene === 2) {
+                gameState.currentDialogueIndex++;
+                playCurrentSceneDialogue();
+            }
+        }
+        
+        function examineHandModel() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            // 隐藏红圈
+            hideHintCircle('hand');
+            
+            container.innerHTML = '';
+            
+            // 显示手模型描述
+            const narrationBox = document.createElement('div');
+            narrationBox.className = 'narration-box';
+            
+            narrationBox.innerHTML = `
+                <div class="dialogue-text">
+                    这是一只制作精良的手模型，材质像是硅胶，触感冰凉。五指紧紧攥着，仿佛握着什么东西。
+                    <br><br>
+                    赵健用拖把杆捅了捅手模型，没动静。"要掰开？"王鹏小声问。
+                </div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(narrationBox);
+            
+            setTimeout(() => {
+                narrationBox.style.opacity = '1';
+                narrationBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                
+                waitForClick(() => {
+                    // 显示赵健掰开手的对话
+                    showHandOpeningDialogue();
+                });
+            }, 10);
+        }
+        
+        function showHandOpeningDialogue() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            // 显示赵健立绘
+            showAvatar('赵健', 'res/赵健.png');
+            
+            const dialogueBox = document.createElement('div');
+            dialogueBox.className = 'dialogue-box';
+            dialogueBox.style.animation = 'dialogueFadeIn 0.5s ease';
+            
+            dialogueBox.innerHTML = `
+                <div class="dialogue-title">
+                    <span class="title-icon" style="background-color:#ff6b6b"></span>
+                    赵健
+                </div>
+                <div class="dialogue-text">赵健犹豫了一下，伸手握住冰冷的模型，用力掰开手指。"咔。"指关节发出轻微的机械声，五指缓缓张开，掌心躺着一把银色钥匙，钥匙上贴着标签："画后"。</div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(dialogueBox);
+            
+            setTimeout(() => {
+                dialogueBox.style.opacity = '1';
+                
+                waitForClick(() => {
+                    // 获得画后钥匙
+                    showItemOverlay('res/画后钥匙.jpg', '画后钥匙');
+                    gameState.sceneInvestigated.hand = true;
+                    gameState.itemsObtained.paintingKey = true;
+                    
+                    // 延迟切换到场景5
+                    setTimeout(() => {
+                        switchToScene(5);
+                    }, 500);
+                });
+            }, 100);
+        }
+        
+        // ==================== 物品栏函数 ====================
+        function addItemToInventory(itemId) {
+            const item = inventoryItems[itemId];
+            if (!item) return false;
+            
+            const existingItem = gameState.inventory.find(i => i.id === item.id);
+            if (!existingItem) {
+                gameState.inventory.push({
+                    ...item,
+                    count: 1
+                });
+                updateInventoryDisplay();
+                return true;
+            }
+            return false;
+        }
+        
+        function updateInventoryDisplay() {
+            for (let i = 1; i <= 5; i++) {
+                const inventoryArea = document.getElementById(`inventory-area${i}`) || 
+                                     (i === 1 ? document.getElementById('inventory-area') : null);
+                if (!inventoryArea) continue;
+                
+                inventoryArea.innerHTML = '';
+                
+                const titleElement = document.createElement('div');
+                titleElement.className = 'inventory-placeholder';
+                titleElement.textContent = '物品栏';
+                inventoryArea.appendChild(titleElement);
+                
+                gameState.inventory.forEach(item => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'inventory-item';
+                    itemDiv.title = item.name + ': ' + item.description;
+                    itemDiv.dataset.itemId = item.id;
+                    
+                    const img = document.createElement('img');
+                    img.src = item.image;
+                    img.alt = item.name;
+                    itemDiv.appendChild(img);
+                    
+                    // 添加点击事件 - 处理不同类型的物品
+                    itemDiv.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        if (item.id === 'painting_key' && gameState.currentScene === 5) {
+                            // 在场景5使用画后钥匙 - 使用后从物品栏移除
+                            usePaintingKey();
+                            removeItemFromInventory(item.id);  // 新增：移除物品
+                        } else if (item.id === 'archive_key') {
+                            // 档案柜钥匙暂时不需要使用
+                            alert('这把钥匙应该用在档案柜上。');
+                        } else {
+                            alert('好像不是用这个呢~');
+                        }
+                    });
+                    
+                    inventoryArea.appendChild(itemDiv);
+                });
+            }
+        }
+        
+        function removeItemFromInventory(itemId) {
+            // 找到物品在物品栏中的索引
+            const itemIndex = gameState.inventory.findIndex(item => item.id === itemId);
+            
+            if (itemIndex !== -1) {
+                // 从物品栏数组中移除
+                gameState.inventory.splice(itemIndex, 1);
+                
+                // 更新物品栏显示
+                updateInventoryDisplay();
+                
+                console.log(`物品 ${itemId} 已从物品栏移除`);
+                return true;
+            }
+            
+            console.log(`物品栏中没有找到物品 ${itemId}`);
+            return false;
+        }
+        
+        // ==================== 立绘管理函数 ====================
+        function clearCurrentAvatar() {
+            const sceneId = `scene${gameState.currentScene}`;
+            const avatarContainer = elements[`${sceneId}CharacterAvatarContainer`];
+            if (avatarContainer) {
+                avatarContainer.innerHTML = '';
+            }
+            gameState.currentCharacter = null;
+            gameState.currentAvatar = null;
+        }
+        
+        function showAvatar(character, avatar) {
+            clearCurrentAvatar();
+            
+            if (!character || !avatar) return;
+            
+            const charConfig = gameState.characters[character];
+            if (!charConfig) return;
+            
+            const sceneId = `scene${gameState.currentScene}`;
+            const avatarContainer = elements[`${sceneId}CharacterAvatarContainer`];
+            if (!avatarContainer) return;
+            
+            const avatarImg = document.createElement('img');
+            avatarImg.className = `character-avatar-img ${charConfig.position === 'right' ? 'character-right' : 'character-left'}`;
+            avatarImg.src = avatar;
+            avatarImg.alt = character;
+            avatarImg.style.opacity = '0';
+            avatarImg.style.animation = 'avatarFadeIn 0.7s ease forwards';
+            
+            avatarContainer.appendChild(avatarImg);
+            
+            // 设置淡入动画
+            setTimeout(() => {
+                avatarImg.style.opacity = '1';
+            }, 10);
+            
+            gameState.currentCharacter = character;
+            gameState.currentAvatar = avatar;
+        }
+        
+        // ==================== 物品放大展示 ====================
+        let currentItemToAdd = null;
+
+        function showItemOverlay(imageSrc, itemId) {
+            elements.overlayItemImg.src = imageSrc;
+            currentItemToAdd = itemId;
+            elements.itemOverlay.classList.add('active');
+            
+            const audio = new Audio('res/获得物品音频.mp3');
+            audio.volume = 0.7;
+            audio.play().catch(e => console.log("音频播放失败:", e));
+        }
+
+        function closeItemOverlay() {
+            elements.itemOverlay.classList.remove('active');
+            
+            if (currentItemToAdd) {
+                const added = addItemToInventory(currentItemToAdd);
+                if (added) {
+                    if (currentItemToAdd === '画后钥匙') {
+                        // 画后钥匙已获得，继续剧情
+                        setTimeout(() => {
+                            switchToScene(5);
+                        }, 300);
+                    } else if (currentItemToAdd === '小纸的日记·其三') {
+                        // 阅读日记
+                        setTimeout(() => {
+                            readDiary3();
+                        }, 300);
+                    } else if (currentItemToAdd === '档案柜钥匙') {
+                        // 档案柜钥匙已获得，显示最后对话
+                        setTimeout(() => {
+                            showFinalDialogue();
+                        }, 300);
+                    }
+                }
+                currentItemToAdd = null;
+            }
+        }
+        
+        // ==================== 使用画后钥匙 ====================
+        function usePaintingKey() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            const narrationBox = document.createElement('div');
+            narrationBox.className = 'narration-box';
+            
+            narrationBox.innerHTML = `
+                <div class="dialogue-text">
+                    钥匙插入、转动，"咔嚓"一声，柜门弹开。里面没有恐怖的东西，只有一个透明文件袋，装着几张熟悉的日记碎片。
+                </div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(narrationBox);
+            
+            setTimeout(() => {
+                narrationBox.style.opacity = '1';
+                narrationBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                
+                waitForClick(() => {
+                    // 获得小纸的日记·其三
+                    showItemOverlay('res/小纸的日记(其三).jpg', '小纸的日记·其三');
+                    gameState.itemsObtained.diary3 = true;
+                });
+            }, 10);
+        }
+        
+        // ==================== 阅读日记3 ====================
+        function readDiary3() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            const diaryBox = document.createElement('div');
+            diaryBox.className = 'narration-box diary-page';
+            
+            diaryBox.innerHTML = `
+                <div class="dialogue-text diary-text">
+                    <strong>9月29日，晴</strong><br><br>
+                    明天就要上场了……<br>
+                    好紧张好紧张！
+                    <br><br>
+                    <strong>9月30日，雨</strong><br><br>
+                    是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁是谁
+                    <br><br>
+                    这张碎片密密麻麻写满"是谁"，字迹多处抖动，纸面有模糊的水渍，像是被泪水打湿。
+                    <br><br>
+                    <strong>10月8日，</strong><br><br>
+                    怎么一切都变了……
+                </div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(diaryBox);
+            
+            setTimeout(() => {
+                diaryBox.style.opacity = '1';
+                diaryBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                
+                waitForClick(() => {
+					// 播放玻璃破碎音效
+					new Audio('res/玻璃破碎.mp3').play().catch(e => console.log("音频播放失败:", e));
+                    // 镜子炸开，获得档案柜钥匙
+                    showMirrorBreakScene();
+                });
+            }, 10);
+        }
+        
+        // ==================== 镜子炸开场景 ====================
+        function showMirrorBreakScene() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            const narrationBox = document.createElement('div');
+            narrationBox.className = 'narration-box';
+            
+            narrationBox.innerHTML = `
+                <div class="dialogue-text">
+                    刚看完，镜子突然炸开，你们慌忙躲闪。一地碎片中，一把钥匙格外显眼。你捡起它，上面写着："档案柜"。
+                </div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(narrationBox);
+            
+            setTimeout(() => {
+                narrationBox.style.opacity = '1';
+                narrationBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                
+                triggerComments('scene5_1');
+                
+                waitForClick(() => {
+                    // 获得档案柜钥匙
+                    showItemOverlay('res/档案柜钥匙.jpg', '档案柜钥匙');
+                    gameState.itemsObtained.archiveKey = true;
+                });
+            }, 10);
+        }
+        
+        // ==================== 显示物品栏提示 ====================
+        function showInventoryHint() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            const hintBox = document.createElement('div');
+            hintBox.className = 'narration-box';
+            
+            hintBox.innerHTML = `
+                <div class="dialogue-text">
+                    请点击右上角的物品栏，选择物品来打开保险柜。
+                </div>
+            `;
+            
+            container.appendChild(hintBox);
+            
+            setTimeout(() => {
+                hintBox.style.opacity = '1';
+                hintBox.style.animation = 'dialogueFadeIn 0.5s ease';
+            }, 500);
+        }
+        
+        // ==================== 显示最终对话 ====================
+        function showFinalDialogue() {
+            const container = gameState.currentDialogueContainer;
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            // 显示孙薇薇立绘
+            showAvatar('孙薇薇', 'res/孙薇薇.png');
+            
+            const dialogueBox1 = document.createElement('div');
+            dialogueBox1.className = 'dialogue-box';
+            dialogueBox1.style.animation = 'dialogueFadeIn 0.5s ease';
+            
+            dialogueBox1.innerHTML = `
+                <div class="dialogue-title">
+                    <span class="title-icon" style="background-color:#f8a5c2"></span>
+                    孙薇薇
+                </div>
+                <div class="dialogue-text">"只有老师办公室有档案柜吧？这是让我们去办公室？"</div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.appendChild(dialogueBox1);
+            
+            setTimeout(() => {
+                dialogueBox1.style.opacity = '1';
+                
+                waitForClick(() => {
+                    container.innerHTML = '';
+                    
+                    // 清除当前立绘
+                    clearCurrentAvatar();
+                    
+                    // 显示玩家立绘
+                    showAvatar('你', 'res/林晚晴.png');
+                    
+                    const dialogueBox2 = document.createElement('div');
+                    dialogueBox2.className = 'dialogue-box';
+                    dialogueBox2.style.animation = 'dialogueFadeIn 0.5s ease';
+                    
+                    dialogueBox2.innerHTML = `
+                        <div class="dialogue-title">
+                            <span class="title-icon" style="background-color:#4ecdc4"></span>
+                            你
+                        </div>
+                        <div class="dialogue-text">你点头："走吧，去办公室。"</div>
+                        <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+                    `;
+                    
+                    container.appendChild(dialogueBox2);
+                    
+                    setTimeout(() => {
+                        dialogueBox2.style.opacity = '1';
+                        
+                        waitForClick(() => {
+                            container.innerHTML = '';
+                            
+                            // 清除当前立绘
+                            clearCurrentAvatar();
+                            
+                            // 显示赵健立绘
+                            showAvatar('赵健', 'res/赵健.png');
+                            
+                            const dialogueBox3 = document.createElement('div');
+                            dialogueBox3.className = 'dialogue-box';
+                            dialogueBox3.style.animation = 'dialogueFadeIn 0.5s ease';
+                            
+                            dialogueBox3.innerHTML = `
+                                <div class="dialogue-title">
+                                    <span class="title-icon" style="background-color:#ff6b6b"></span>
+                                    赵健
+                                </div>
+                                <div class="dialogue-text">"谁的办公室？"</div>
+                                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+                            `;
+                            
+                            container.appendChild(dialogueBox3);
+                            
+                            setTimeout(() => {
+                                dialogueBox3.style.opacity = '1';
+                                
+                                waitForClick(() => {
+                                    container.innerHTML = '';
+                                    
+                                    // 清除当前立绘
+                                    clearCurrentAvatar();
+                                    
+                                    // 显示玩家立绘
+                                    showAvatar('你', 'res/林晚晴.png');
+                                    
+                                    const dialogueBox4 = document.createElement('div');
+                                    dialogueBox4.className = 'dialogue-box';
+                                    dialogueBox4.style.animation = 'dialogueFadeIn 0.5s ease';
+                                    
+                                    dialogueBox4.innerHTML = `
+                                        <div class="dialogue-title">
+                                            <span class="title-icon" style="background-color:#4ecdc4"></span>
+                                            你
+                                        </div>
+                                        <div class="dialogue-text">你："这一层还能有谁？老李那间。其他楼层又开不了。"</div>
+                                        <div class="special-item-hint">场景结束，点击左上角"回到地图"前往办公室</div>
+                                    `;
+                                    
+                                    container.appendChild(dialogueBox4);
+                                    
+                                    setTimeout(() => {
+                                        dialogueBox4.style.opacity = '1';
+                                    }, 10);
+                                });
+                            }, 10);
+                        });
+                    }, 10);
+                });
+            }, 10);
+        }
+        
+        // ==================== 闪烁效果 - 修改为顶部光源效果 ====================
+        function triggerFlashEffect() {
+            if (gameState.isFlashing) return;
+            
+            gameState.isFlashing = true;
+            elements.flashOverlay.classList.add('active');
+            
+            setTimeout(() => {
+                elements.flashOverlay.classList.remove('active');
+                gameState.isFlashing = false;
+            }, 1600);
+        }
+        
+        // ==================== 评论管理系统 ====================
+        function triggerComments(commentKey) {
+            if (gameState.shownComments.has(commentKey)) {
+                return;
+            }
+            
+            if (!commentKey || !commentsData[commentKey]) {
+                return;
+            }
+            
+            gameState.shownComments.add(commentKey);
+            addComments(commentsData[commentKey], 300);
+        }
+        
+        // ==================== 点击等待机制 ====================
+        function waitForClick(callback) {
+            if (gameState.isWaitingForClick) return;
+            
+            gameState.isWaitingForClick = true;
+            gameState.clickCallback = callback;
+        }
+        
+        function handleSceneClick(event) {
+            // 排除特定元素的点击
+            if (event.target.classList.contains('hint-circle') || 
+                event.target.classList.contains('investigate-option') ||
+                event.target.classList.contains('choice-option') ||
+                event.target.closest('.map-link') ||
+                event.target.closest('.scene-link')) {
+                return;
+            }
+            
+            // 排除物品栏点击
+            for (let i = 1; i <= 5; i++) {
+                const inventoryArea = document.getElementById(`inventory-area${i}`) || 
+                                     (i === 1 ? document.getElementById('inventory-area') : null);
+                if (inventoryArea && inventoryArea.contains(event.target)) {
+                    return;
+                }
+            }
+            
+            // 排除物品放大层和闪烁层点击
+            if (elements.itemOverlay.classList.contains('active') ||
+                gameState.isFlashing) {
+                return;
+            }
+            
+            if (gameState.isWaitingForClick && gameState.clickCallback) {
+                const callback = gameState.clickCallback;
+                gameState.isWaitingForClick = false;
+                gameState.clickCallback = null;
+                callback();
+            }
+        }
+        
+        // ==================== 场景切换和对话播放 ====================
+        function switchToScene(sceneNum) {
+            console.log('切换到场景:', sceneNum);
+            
+            gameState.currentScene = sceneNum;
+            gameState.currentDialogueIndex = 0;
+            gameState.shownDialogueIds.clear();
+            
+            // 隐藏所有场景
+            const scenes = document.querySelectorAll('.scene');
+            scenes.forEach(scene => {
+                scene.style.display = 'none';
+            });
+            
+            // 显示目标场景
+            const currentScene = document.getElementById(`scene${sceneNum}`);
+            if (currentScene) {
+                currentScene.style.display = 'block';
+                console.log('已显示场景:', sceneNum);
+            }
+            
+            // 设置当前对话容器
+            switch(sceneNum) {
+                case 1:
+                    gameState.currentDialogueContainer = document.getElementById('dialogue-container');
+                    break;
+                case 2:
+                    gameState.currentDialogueContainer = document.getElementById('scene2-dialogue-container');
+                    break;
+                case 3:
+                    gameState.currentDialogueContainer = document.getElementById('scene3-dialogue-container');
+                    break;
+                case 4:
+                    gameState.currentDialogueContainer = document.getElementById('scene4-dialogue-container');
+                    break;
+                case 5:
+                    gameState.currentDialogueContainer = document.getElementById('scene5-dialogue-container');
+                    break;
+            }
+            
+            // 清除当前立绘
+            clearCurrentAvatar();
+            
+            // 隐藏所有红圈
+            hideAllHintCircles();
+            
+            // 播放场景对话
+            playCurrentSceneDialogue();
+        }
+        
+        function playCurrentSceneDialogue() {
+            if (!gameState.currentDialogueContainer) return;
+            
+            const sceneKey = `scene${gameState.currentScene}`;
+            
+            gameState.currentDialogueContainer.innerHTML = '';
+            gameState.currentDialogueContainer.style.display = 'block';
+            gameState.currentDialogueContainer.style.opacity = '1';
+            
+            if (sceneKey === 'scene3') {
+                // 场景3使用独立的对话序列
+                playScene3Dialogue();
+            } else if (sceneKey === 'scene4') {
+                // 场景4使用独立的对话序列
+                playScene4Dialogue();
+            } else if (sceneKey === 'scene5') {
+                // 场景5使用独立的对话序列
+                playScene5Dialogue();
+            } else {
+                playSceneDialogue(sceneKey, gameState.currentDialogueContainer);
+            }
+        }
+        
+        function playSceneDialogue(sceneKey, container) {
+            const dialogues = sceneDialogues[sceneKey];
+            if (!dialogues || gameState.currentDialogueIndex >= dialogues.length) {
+                return;
+            }
+            
+            const dialogue = dialogues[gameState.currentDialogueIndex];
+            
+            if (dialogue.commentKey && commentsData[dialogue.commentKey]) {
+                triggerComments(dialogue.commentKey);
+            }
+            
+            if (dialogue.type === 'narration') {
+                showNarrationDialogue(dialogue, container, sceneKey, dialogue.isDecisionPoint, dialogue.action);
+            } else if (dialogue.type === 'character') {
+                showCharacterDialogue(dialogue, container, sceneKey, dialogue.action);
+            }
+        }
+        
+        // 场景3独立对话播放
+        function playScene3Dialogue() {
+            if (gameState.currentDialogueIndex >= scene3Dialogues.length) {
+                return;
+            }
+            
+            const dialogue = scene3Dialogues[gameState.currentDialogueIndex];
+            
+            if (dialogue.commentKey && commentsData[dialogue.commentKey]) {
+                triggerComments(dialogue.commentKey);
+            }
+            
+            if (dialogue.type === 'narration') {
+                showNarrationDialogue(dialogue, gameState.currentDialogueContainer, 'scene3_custom', false, dialogue.action);
+            } else if (dialogue.type === 'character') {
+                showCharacterDialogue(dialogue, gameState.currentDialogueContainer, 'scene3_custom', dialogue.action);
+            }
+        }
+        
+        // 场景4独立对话播放
+        function playScene4Dialogue() {
+            if (gameState.currentDialogueIndex >= scene4Dialogues.length) {
+                return;
+            }
+            
+            const dialogue = scene4Dialogues[gameState.currentDialogueIndex];
+            
+            if (dialogue.commentKey && commentsData[dialogue.commentKey]) {
+                triggerComments(dialogue.commentKey);
+            }
+            
+            if (dialogue.type === 'narration') {
+                showNarrationDialogue(dialogue, gameState.currentDialogueContainer, 'scene4_custom', false, dialogue.action);
+            } else if (dialogue.type === 'character') {
+                showCharacterDialogue(dialogue, gameState.currentDialogueContainer, 'scene4_custom', dialogue.action);
+            }
+        }
+        
+        // 场景5独立对话播放
+        function playScene5Dialogue() {
+            if (gameState.currentDialogueIndex >= scene5Dialogues.length) {
+                return;
+            }
+            
+            const dialogue = scene5Dialogues[gameState.currentDialogueIndex];
+            
+            if (dialogue.commentKey && commentsData[dialogue.commentKey]) {
+                triggerComments(dialogue.commentKey);
+            }
+            
+            if (dialogue.type === 'narration') {
+                showNarrationDialogue(dialogue, gameState.currentDialogueContainer, 'scene5_custom', false, dialogue.action);
+            } else if (dialogue.type === 'character') {
+                showCharacterDialogue(dialogue, gameState.currentDialogueContainer, 'scene5_custom', dialogue.action);
+            }
+        }
+        
+        function showNarrationDialogue(dialogue, container, sceneKey, isDecisionPoint = false, actionCallback = null) {
+            const narrationBox = document.createElement('div');
+            narrationBox.className = 'narration-box';
+            
+            narrationBox.innerHTML = `
+                <div class="dialogue-text">${dialogue.content}</div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(narrationBox);
+            
+            setTimeout(() => {
+                narrationBox.style.opacity = '1';
+                narrationBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                
+                waitForClick(() => {
+                    gameState.currentDialogueIndex++;
+                    
+                    if (actionCallback && typeof actionCallback === 'function') {
+                        actionCallback();
+                    }
+                    
+                    if (isDecisionPoint) {
+                        // 决策点处理
+                    } else {
+                        // 继续播放对话
+                        if (sceneKey === 'scene3_custom') {
+                            playScene3Dialogue();
+                        } else if (sceneKey === 'scene4_custom') {
+                            playScene4Dialogue();
+                        } else if (sceneKey === 'scene5_custom') {
+                            playScene5Dialogue();
+                        } else {
+                            playSceneDialogue(sceneKey, container);
+                        }
+                    }
+                });
+            }, 10);
+        }
+        
+        function showCharacterDialogue(dialogue, container, sceneKey, actionCallback = null) {
+            const charConfig = gameState.characters[dialogue.character];
+            
+            // 显示人物立绘
+            showAvatar(dialogue.character, dialogue.avatar);
+            
+            const dialogueBox = document.createElement('div');
+            dialogueBox.className = 'dialogue-box';
+            dialogueBox.style.animation = 'dialogueFadeIn 0.5s ease';
+            
+            dialogueBox.innerHTML = `
+                <div class="dialogue-title">
+                    <span class="title-icon" style="background-color:${charConfig.color}"></span>
+                    ${dialogue.character}
+                </div>
+                <div class="dialogue-text">${dialogue.text}</div>
+                <div class="dialogue-hint">提示：点击屏幕任意位置继续</div>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(dialogueBox);
+            
+            setTimeout(() => {
+                dialogueBox.style.opacity = '1';
+                
+                waitForClick(() => {
+                    gameState.currentDialogueIndex++;
+                    
+                    if (actionCallback && typeof actionCallback === 'function') {
+                        actionCallback();
+                    }
+                    
+                    // 继续播放对话
+                    if (sceneKey === 'scene3_custom') {
+                        playScene3Dialogue();
+                    } else if (sceneKey === 'scene4_custom') {
+                        playScene4Dialogue();
+                    } else if (sceneKey === 'scene5_custom') {
+                        playScene5Dialogue();
+                    } else {
+                        playSceneDialogue(sceneKey, container);
+                    }
+                });
+            }, 10);
+        }
+        
+        // ==================== 通用函数 ====================
+        function addComments(comments, interval = 300) {
+            let index = 0;
+            
+            const existingComments = Array.from(elements.commentArea.children).map(child => {
+                const textDiv = child.querySelector('div:nth-child(2)');
+                return textDiv ? textDiv.textContent : '';
+            });
+            
+            function addNextComment() {
+                if (index >= comments.length) return;
+                
+                const comment = comments[index];
+                
+                if (!existingComments.includes(comment.text)) {
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'comment pop-in';
+                    commentDiv.innerHTML = `
+                        <div class="comment-user">${comment.user}</div>
+                        <div>${comment.text}</div>
+                    `;
+                    elements.commentArea.appendChild(commentDiv);
+                    
+                    setTimeout(() => {
+                        commentDiv.style.animation = 'popIn 0.5s ease forwards';
+                    }, 10);
+                    
+                    scrollCommentsToBottom();
+                    
+                    const currentCount = parseInt(elements.viewerCount.textContent);
+                    const increment = Math.floor(Math.random() * 15) + 10;
+                    elements.viewerCount.textContent = currentCount + increment;
+                }
+                
+                index++;
+                
+                if (index < comments.length) {
+                    setTimeout(addNextComment, interval);
+                }
+            }
+            
+            addNextComment();
+        }
+        
+        function scrollCommentsToBottom() {
+            if (elements.commentArea) {
+                elements.commentArea.scrollTop = elements.commentArea.scrollHeight;
+            }
+        }
+        
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化物品栏（从之前场景带来的物品）
+            addItemToInventory('小纸的日记·其一');
+            addItemToInventory('小纸的日记·其二');
+            updateInventoryDisplay();
+            
+            document.addEventListener('click', function(e) {
+                handleSceneClick(e);
+            });
+            
+            window.addEventListener('hashchange', function() {
+                const sceneNum = parseInt(window.location.hash.replace('#scene', ''));
+                if (!isNaN(sceneNum)) {
+                    switchToScene(sceneNum);
+                }
+            });
+            
+            // 核心函数：页面加载流程
+            function initializeCurrentScene() {
+                const hash = window.location.hash;
+                if (hash) {
+                    const sceneMatch = hash.match(/#scene(\d+)/);
+                    if (sceneMatch) {
+                        const sceneNum = parseInt(sceneMatch[1]);
+                        setTimeout(() => {
+                            switchToScene(sceneNum);
+							playBackgroundMusic();
+                        }, 100);
+                    }
+                } else {
+                    gameState.hasStarted = true;
+                    gameState.currentScene = 1;
+                    gameState.currentDialogueIndex = 0;
+                    gameState.currentDialogueContainer = document.getElementById('dialogue-container');
+                    
+                    setTimeout(() => {
+						playBackgroundMusic();
+                        if (elements.narrationBox) {
+                            elements.narrationBox.style.opacity = '1';
+                            elements.narrationBox.style.animation = 'dialogueFadeIn 0.5s ease';
+                            
+                            triggerComments('scene1_0');
+                            
+                            waitForClick(() => {
+                                elements.narrationBox.classList.add('hidden');
+                                setTimeout(() => {
+                                    gameState.currentDialogueIndex = 0;
+                                    playCurrentSceneDialogue();
+                                }, 300);
+                            });
+                        }
+                    }, 100);
+                }
+            }
+            
+            initializeCurrentScene();
+            scrollCommentsToBottom();
+        });
+    </script>
+</body>
+</html>
